@@ -18,9 +18,22 @@ const ProjectSchema = new mongoose.Schema({
     type: [String],
     required: [true, 'Please provide at least one tag.'],
   },
+  category: {
+    type: String,
+    required: [true, 'Please select a category.'],
+    enum: ['Architecture', 'Interior Design', 'Product Visualization', 'Animation'],
+  },
+  isFeatured: {
+    type: Boolean,
+    default: false,
+  },
+  images: {
+    type: [String], // Array of image URLs
+    default: [],
+  },
   link: {
     type: String,
-    required: [true, 'Please provide a link to the project.'],
+    required: [false, 'Link is optional.'], // Made optional as per typical portfolio needs
   },
   createdAt: {
     type: Date,

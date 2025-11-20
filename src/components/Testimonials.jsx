@@ -79,7 +79,7 @@ function TestimonialCard({ testimonial, index }) {
   );
 }
 
-export function Testimonials() {
+export function Testimonials({ showClients = true }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const clientsRef = useRef(null);
@@ -114,6 +114,8 @@ export function Testimonials() {
         </div>
 
         {/* Clients */}
+        {/* Clients */}
+        {showClients && (
         <motion.div
           ref={clientsRef}
           initial={{ opacity: 0, y: 30 }}
@@ -142,6 +144,7 @@ export function Testimonials() {
             ))}
           </div>
         </motion.div>
+        )}
       </div>
     </section>
   );

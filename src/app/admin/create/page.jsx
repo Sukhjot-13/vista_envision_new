@@ -39,6 +39,33 @@ export default function CreateProjectPage() {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-gray-700">Category</label>
+          <select
+            name="category"
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+          >
+            <option value="">Select a category</option>
+            <option value="Architecture">Architecture</option>
+            <option value="Interior Design">Interior Design</option>
+            <option value="Product Visualization">Product Visualization</option>
+            <option value="Animation">Animation</option>
+          </select>
+        </div>
+
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            name="isFeatured"
+            id="isFeatured"
+            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          />
+          <label htmlFor="isFeatured" className="ml-2 block text-sm text-gray-900">
+            Featured Project (Show on Home Page)
+          </label>
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-gray-700">Description</label>
           <textarea
             name="description"
@@ -49,11 +76,10 @@ export default function CreateProjectPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Link</label>
+          <label className="block text-sm font-medium text-gray-700">Link (Optional)</label>
           <input
             type="url"
             name="link"
-            required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
           />
         </div>
@@ -70,12 +96,28 @@ export default function CreateProjectPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Image</label>
+          <label className="block text-sm font-medium text-gray-700">Cover Image</label>
           <input
             type="file"
             name="image"
             accept="image/*"
             required
+            className="mt-1 block w-full text-sm text-gray-500
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-full file:border-0
+              file:text-sm file:font-semibold
+              file:bg-indigo-50 file:text-indigo-700
+              hover:file:bg-indigo-100"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Additional Images (Collage)</label>
+          <input
+            type="file"
+            name="images"
+            accept="image/*"
+            multiple
             className="mt-1 block w-full text-sm text-gray-500
               file:mr-4 file:py-2 file:px-4
               file:rounded-full file:border-0
