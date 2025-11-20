@@ -64,7 +64,7 @@ export function Hero() {
             <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-white text-white hover:bg-white hover:text-[#474846] hover:scale-105 transition-all duration-300 px-8 py-6"
+                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#474846] hover:scale-105 transition-all duration-300 px-8 py-6"
             >
                 Get a Quote
             </Button>

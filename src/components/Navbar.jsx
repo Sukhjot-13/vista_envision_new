@@ -48,12 +48,17 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
+          {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-[#F4D854] rounded-lg flex items-center justify-center">
-              <span className="text-[#474846]">VE</span>
+            <div className="w-12 h-12 relative">
+               <img 
+                 src="/Logo.png" 
+                 alt="Vista Envision Logo" 
+                 className="w-full h-full object-contain"
+               />
             </div>
             <span
-              className={`transition-colors duration-300 ${
+              className={`transition-colors duration-300 font-bold text-xl ${
                 isScrolled || !isHomePage ? "text-[#474846]" : "text-white"
               }`}
             >
@@ -74,17 +79,6 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <Link href="/contact">
-              <Button
-                className={`transition-all duration-300 ${
-                  isScrolled || !isHomePage
-                    ? "bg-[#F4D854] text-[#474846] hover:bg-[#F4D854]/90"
-                    : "bg-white text-[#474846] hover:bg-white/90"
-                }`}
-              >
-                Get a Quote
-              </Button>
-            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -130,11 +124,6 @@ export function Navbar() {
                   {link.name}
                 </Link>
               ))}
-              <Link href="/contact">
-                <Button className="w-full bg-[#F4D854] text-[#474846] hover:bg-[#F4D854]/90">
-                  Get a Quote
-                </Button>
-              </Link>
             </div>
           </motion.div>
         )}

@@ -29,7 +29,7 @@ export default async function ProjectDetailsPage({ params }) {
         <div className="absolute inset-0 bg-black/30 flex items-end">
             <div className="max-w-7xl mx-auto px-6 w-full pb-12">
                 <Link href="/portfolio">
-                    <Button variant="outline" className="mb-6 text-white border-white hover:bg-white hover:text-black">
+                    <Button variant="outline" className="mb-6 bg-transparent text-white border-white hover:bg-white hover:text-black">
                         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Portfolio
                     </Button>
                 </Link>
