@@ -7,29 +7,33 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin } from "lucide-react";
 
+import { sendQuoteRequest } from "@/actions/emailActions";
+
 export function Contact() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    company: "",
-    message: "",
-  });
-
-  const handleSubmit = (e) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission - this would typically send to a backend
-    console.log("Form submitted:", formData);
-    alert("Thank you! We'll be in touch soon.");
-    setFormData({ name: "", email: "", company: "", message: "" });
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setIsSubmitting(true);
+    
+    const formData = new FormData(e.target);
+    
+    try {
+      const result = await sendQuoteRequest(formData);
+      if (result.success) {
+        alert("Thank you! We'll be in touch soon.");
+        e.target.reset();
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -140,8 +144,6 @@ export function Contact() {
                   id="name"
                   name="name"
                   type="text"
-                  value={formData.name}
-                  onChange={handleChange}
                   required
                   className="w-full bg-gray-50 border-gray-200 focus:border-[#F4D854] focus:ring-[#F4D854]"
                   placeholder="Your full name"
@@ -159,8 +161,6 @@ export function Contact() {
                   id="email"
                   name="email"
                   type="email"
-                  value={formData.email}
-                  onChange={handleChange}
                   required
                   className="w-full bg-gray-50 border-gray-200 focus:border-[#F4D854] focus:ring-[#F4D854]"
                   placeholder="your.email@example.com"
@@ -178,8 +178,6 @@ export function Contact() {
                   id="company"
                   name="company"
                   type="text"
-                  value={formData.company}
-                  onChange={handleChange}
                   className="w-full bg-gray-50 border-gray-200 focus:border-[#F4D854] focus:ring-[#F4D854]"
                   placeholder="Your company name (optional)"
                 />
@@ -195,8 +193,6 @@ export function Contact() {
                 <Textarea
                   id="message"
                   name="message"
-                  value={formData.message}
-                  onChange={handleChange}
                   required
                   rows={5}
                   className="w-full bg-gray-50 border-gray-200 focus:border-[#F4D854] focus:ring-[#F4D854] resize-none"
@@ -206,9 +202,10 @@ export function Contact() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#F4D854] text-[#474846] hover:bg-[#F4D854]/90 hover:scale-[1.02] transition-all duration-300 py-6"
+                disabled={isSubmitting}
+                className="w-full bg-[#F4D854] text-[#474846] hover:bg-[#F4D854]/90 hover:scale-[1.02] transition-all duration-300 py-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Request a Quote
+                {isSubmitting ? 'Sending...' : 'Request a Quote'}
               </Button>
             </form>
           </motion.div>

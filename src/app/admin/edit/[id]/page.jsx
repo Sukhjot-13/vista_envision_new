@@ -137,7 +137,7 @@ export default function EditProjectPage({ params }) {
                 <img key={idx} src={img} alt={`Additional ${idx}`} className="h-20 object-cover rounded" />
             ))}
           </div>
-          <label className="block text-sm font-medium text-gray-700">Add More Images (optional)</label>
+          <label className="block text-sm font-medium text-gray-700">Replace All Gallery Images (optional)</label>
           <input
             type="file"
             name="images"
