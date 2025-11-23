@@ -14,7 +14,7 @@ const services = [
     icon: <Home className="h-8 w-8" />,
     title: "Interior Design",
     description:
-      "Detailed interior visualizations helping clients visualize space, furniture, and lighting.",
+      "We create timeless, harmonious interiors with personalized designs that turn your ideas into beautiful, livable spaces.",
   },
   {
     icon: <Box className="h-8 w-8" />,

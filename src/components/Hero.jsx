@@ -32,7 +32,7 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.3 }}
         >
           <h1 className="text-5xl md:text-7xl mb-6 tracking-tight">
-            Bringing Visions to Life Through Stunning 3D Visualization
+            Bring Your Vision to Life 3D
           </h1>
         </motion.div>
 

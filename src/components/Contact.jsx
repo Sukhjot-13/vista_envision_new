@@ -70,7 +70,7 @@ export function Contact() {
                   </div>
                   <div>
                     <p className="text-white/60 text-sm mb-1">Email</p>
-                    <p className="text-white">hello@vistaenvision.com</p>
+                    <p className="text-white">info@vistaenvision.com</p>
                   </div>
                 </div>
 
@@ -80,7 +80,7 @@ export function Contact() {
                   </div>
                   <div>
                     <p className="text-white/60 text-sm mb-1">Phone</p>
-                    <p className="text-white">+1 (555) 123-4567</p>
+                    <p className="text-white">+91-90233-56008</p>
                   </div>
                 </div>
 
@@ -91,9 +91,11 @@ export function Contact() {
                   <div>
                     <p className="text-white/60 text-sm mb-1">Address</p>
                     <p className="text-white">
-                      123 Design District
+                      4, Deep Nagar,
                       <br />
-                      New York, NY 10001
+                      Patialaa (Punjab)-147001
+                      <br />
+                      India
                     </p>
                   </div>
                 </div>
@@ -113,7 +115,7 @@ export function Contact() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#F4D854] mt-1">•</span>
-                  <span>Collaborative approach and unlimited revisions</span>
+                  <span>Collaborative approach</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#F4D854] mt-1">•</span>
