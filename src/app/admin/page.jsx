@@ -61,7 +61,7 @@ export default async function AdminPage() {
             {projects.length === 0 && (
                 <tr>
                     <td colSpan="3" className="px-6 py-4 text-center text-gray-500">
-                        No projects found.
+                        No projects found. If you are in production, your database might be empty.
                     </td>
                 </tr>
             )}
