@@ -7,9 +7,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function getProjects(filter = {}) {
   await dbConnect();
-  console.log('Fetching projects with filter:', JSON.stringify(filter));
   const projects = await Project.find(filter).sort({ createdAt: -1 }).lean();
-  console.log(`Found ${projects.length} projects`);
   return projects.map((project) => ({
     ...project,
     _id: project._id.toString(),
@@ -114,7 +112,6 @@ export async function createProject(formData) {
   });
 
   await newProject.save();
-  console.log('Project created successfully:', newProject._id);
   revalidatePath('/portfolio');
   revalidatePath('/');
   revalidatePath('/admin');

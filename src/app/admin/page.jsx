@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { getProjects } from '@/actions/projectActions';
 import { DeleteProjectButton } from '@/components/admin/DeleteProjectButton';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminPage() {
   const projects = await getProjects();
 
@@ -61,7 +63,7 @@ export default async function AdminPage() {
             {projects.length === 0 && (
                 <tr>
                     <td colSpan="3" className="px-6 py-4 text-center text-gray-500">
-                        No projects found. If you are in production, your database might be empty.
+                        No projects found.
                     </td>
                 </tr>
             )}
