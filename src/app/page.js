@@ -5,7 +5,7 @@ import { Portfolio } from "@/components/Portfolio";
 
 import { Contact } from "@/components/Contact";
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 10; // Revalidate every hour
 
 export default function Home() {
   return (
