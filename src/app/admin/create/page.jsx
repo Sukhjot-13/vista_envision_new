@@ -7,10 +7,12 @@ import { useState } from 'react';
 export default function CreateProjectPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleSubmit(event) {
     event.preventDefault();
     setLoading(true);
+    setError('');
     const formData = new FormData(event.target);
     
     try {
@@ -18,7 +20,7 @@ export default function CreateProjectPage() {
         router.push('/admin');
     } catch (error) {
         console.error('Failed to create project', error);
-        alert('Failed to create project');
+        setError(error.message || 'Failed to create project');
     } finally {
         setLoading(false);
     }
@@ -27,6 +29,12 @@ export default function CreateProjectPage() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Add New Project</h1>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Title</label>
