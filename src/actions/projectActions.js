@@ -75,47 +75,60 @@ async function deleteImageFromCloudinary(imageUrl) {
 }
 
 export async function createProject(formData) {
-  await dbConnect();
+  console.log('ENTRY: createProject server action called');
+  try {
+    await dbConnect();
 
-  const title = formData.get('title');
-  const description = formData.get('description');
-  const link = formData.get('link');
-  const tags = formData.get('tags').split(',').map(tag => tag.trim());
-  const category = formData.get('category');
-  const isFeatured = formData.get('isFeatured') === 'on';
-  
-  const coverImageFile = formData.get('image');
-  const additionalImages = formData.getAll('images');
+    const title = formData.get('title');
+    const description = formData.get('description');
+    const link = formData.get('link');
+    const tags = formData.get('tags').split(',').map(tag => tag.trim());
+    const category = formData.get('category');
+    const isFeatured = formData.get('isFeatured') === 'on';
+    
+    console.log('createProject: Processing form data', { title, category });
 
-  let imageUrl = '';
-  if (coverImageFile && coverImageFile.size > 0) {
-      imageUrl = await uploadImage(coverImageFile);
+    const coverImageFile = formData.get('image');
+    const additionalImages = formData.getAll('images');
+
+    let imageUrl = '';
+    if (coverImageFile && coverImageFile.size > 0) {
+        console.log('createProject: Uploading cover image...');
+        imageUrl = await uploadImage(coverImageFile);
+    }
+
+    const images = [];
+    for (const file of additionalImages) {
+        if (file.size > 0) {
+            const url = await uploadImage(file);
+            images.push(url);
+        }
+    }
+
+    console.log('createProject: Saving to database...');
+    const newProject = new Project({
+      title,
+      description,
+      link,
+      tags,
+      category,
+      isFeatured,
+      imageUrl,
+      images,
+    });
+
+    await newProject.save();
+    console.log('createProject: Project saved successfully');
+    
+    revalidatePath('/portfolio');
+    revalidatePath('/');
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (error) {
+    console.error('ERROR in createProject server action:', error);
+    // Rethrow so the client receives the error
+    throw new Error(`Server Action Failed: ${error.message} (File: src/actions/projectActions.js)`);
   }
-
-  const images = [];
-  for (const file of additionalImages) {
-      if (file.size > 0) {
-          const url = await uploadImage(file);
-          images.push(url);
-      }
-  }
-
-  const newProject = new Project({
-    title,
-    description,
-    link,
-    tags,
-    category,
-    isFeatured,
-    imageUrl,
-    images,
-  });
-
-  await newProject.save();
-  revalidatePath('/portfolio');
-  revalidatePath('/');
-  revalidatePath('/admin');
-  return { success: true };
 }
 
 export async function updateProject(id, formData) {

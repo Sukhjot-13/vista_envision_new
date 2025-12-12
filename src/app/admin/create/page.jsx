@@ -13,14 +13,20 @@ export default function CreateProjectPage() {
     event.preventDefault();
     setLoading(true);
     setError('');
+    console.log('Initiating createProject action from client...');
     const formData = new FormData(event.target);
     
     try {
-        await createProject(formData);
+        const result = await createProject(formData);
+        console.log('createProject action result:', result);
         router.push('/admin');
     } catch (error) {
-        console.error('Failed to create project', error);
-        setError(error.message || 'Failed to create project');
+        console.error('Failed to create project - Client Catch:', error);
+        console.error('Error stack:', error.stack);
+        // Log detailed error for debugging
+        const errorMessage = error.message || 'Failed to create project';
+        const errorDetails = error.digest ? ` (Digest: ${error.digest})` : '';
+        setError(`${errorMessage}${errorDetails} - Check server logs for "ENTRY: createProject"`);
     } finally {
         setLoading(false);
     }
