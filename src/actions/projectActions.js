@@ -42,8 +42,14 @@ async function uploadImage(file) {
       cloudinary.uploader.upload_stream(
         { folder: 'vista_envision_projects' },
         (error, result) => {
-          if (error) reject(error);
-          else resolve(result.secure_url);
+          if (error) {
+              console.error('uploadImage: Cloudinary Error', error);
+              reject(error);
+          }
+          else {
+              console.log('uploadImage: Success', result.secure_url);
+              resolve(result.secure_url);
+          }
         }
       ).end(buffer);
     });
@@ -75,10 +81,22 @@ async function deleteImageFromCloudinary(imageUrl) {
 }
 
 export async function createProject(formData) {
-  console.log('ENTRY: createProject server action called');
-  try {
-    await dbConnect();
+  const logs = [];
+  const addLog = (msg) => {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] ${msg}`;
+    console.log(logEntry);
+    logs.push(logEntry);
+  };
 
+  addLog('ENTRY: createProject server action initiated');
+
+  try {
+    addLog('Step 1: Connecting to database...');
+    await dbConnect();
+    addLog('Step 1: Database connected successfully');
+
+    addLog('Step 2: Parsing form data...');
     const title = formData.get('title');
     const description = formData.get('description');
     const link = formData.get('link');
@@ -86,26 +104,43 @@ export async function createProject(formData) {
     const category = formData.get('category');
     const isFeatured = formData.get('isFeatured') === 'on';
     
-    console.log('createProject: Processing form data', { title, category });
+    addLog(`Step 2: Form data parsed. Title: "${title}", Category: "${category}"`);
 
     const coverImageFile = formData.get('image');
     const additionalImages = formData.getAll('images');
 
     let imageUrl = '';
     if (coverImageFile && coverImageFile.size > 0) {
-        console.log('createProject: Uploading cover image...');
-        imageUrl = await uploadImage(coverImageFile);
+        addLog('Step 3: Cover image found. Uploading to Cloudinary...');
+        try {
+            imageUrl = await uploadImage(coverImageFile);
+            addLog(`Step 3: Cover image uploaded. URL: ${imageUrl}`);
+        } catch (uploadError) {
+            addLog(`Step 3 ERROR: Failed to upload cover image: ${uploadError.message}`);
+            throw uploadError; // Re-throw to be caught by main catch
+        }
+    } else {
+        addLog('Step 3: No cover image provided or empty file.');
     }
 
     const images = [];
-    for (const file of additionalImages) {
-        if (file.size > 0) {
-            const url = await uploadImage(file);
-            images.push(url);
+    if (additionalImages && additionalImages.length > 0) {
+        addLog(`Step 4: Found ${additionalImages.length} additional images. Processing...`);
+        for (let i = 0; i < additionalImages.length; i++) {
+            const file = additionalImages[i];
+            if (file.size > 0) {
+                addLog(`Step 4: Uploading image ${i + 1}/${additionalImages.length}...`);
+                const url = await uploadImage(file);
+                images.push(url);
+                addLog(`Step 4: Image ${i + 1} uploaded.`);
+            }
         }
+        addLog(`Step 4: All additional images uploaded. Total: ${images.length}`);
+    } else {
+        addLog('Step 4: No additional images to upload.');
     }
 
-    console.log('createProject: Saving to database...');
+    addLog('Step 5: Creating Project Mongoose document...');
     const newProject = new Project({
       title,
       description,
@@ -117,17 +152,30 @@ export async function createProject(formData) {
       images,
     });
 
+    addLog('Step 6: Saving project to database...');
     await newProject.save();
-    console.log('createProject: Project saved successfully');
+    addLog('Step 6: Project saved successfully.');
     
+    addLog('Step 7: Revalidating paths...');
     revalidatePath('/portfolio');
     revalidatePath('/');
     revalidatePath('/admin');
-    return { success: true };
+    addLog('Step 7: Revalidation complete.');
+
+    addLog('SUCCESS: Project creation process finished.');
+    return { success: true, logs: logs };
+
   } catch (error) {
+    addLog(`FATAL ERROR: ${error.message}`);
+    addLog(`Stack Trace: ${error.stack}`);
     console.error('ERROR in createProject server action:', error);
-    // Rethrow so the client receives the error
-    throw new Error(`Server Action Failed: ${error.message} (File: src/actions/projectActions.js)`);
+    
+    // Return logs even in failure so client can display them
+    return { 
+        success: false, 
+        message: error.message, 
+        logs: logs 
+    };
   }
 }
 

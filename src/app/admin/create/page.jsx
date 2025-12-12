@@ -8,25 +8,45 @@ export default function CreateProjectPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [executionLogs, setExecutionLogs] = useState([]);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setLoading(true);
     setError('');
-    console.log('Initiating createProject action from client...');
+    setExecutionLogs(['Client: Initiating form submission...', 'Client: Calling createProject Server Action...']);
+    
     const formData = new FormData(event.target);
     
     try {
         const result = await createProject(formData);
-        console.log('createProject action result:', result);
-        router.push('/admin');
+        
+        // Append server logs to client logs
+        if (result.logs && Array.isArray(result.logs)) {
+             setExecutionLogs(prev => [...prev, ...result.logs]);
+        }
+
+        if (result.success) {
+            setExecutionLogs(prev => [...prev, 'Client: Project created successfully! Redirecting...']);
+            // Small delay to let user see success logs
+            setTimeout(() => {
+                router.push('/admin');
+            }, 1000);
+        } else {
+            throw new Error(result.message || 'Server action returned failure status');
+        }
+
     } catch (error) {
         console.error('Failed to create project - Client Catch:', error);
-        console.error('Error stack:', error.stack);
-        // Log detailed error for debugging
+        
         const errorMessage = error.message || 'Failed to create project';
-        const errorDetails = error.digest ? ` (Digest: ${error.digest})` : '';
-        setError(`${errorMessage}${errorDetails} - Check server logs for "ENTRY: createProject"`);
+        setError(`${errorMessage} - Check Logs below`);
+        
+        setExecutionLogs(prev => [
+            ...prev, 
+            `Client Catch Error: ${errorMessage}`,
+            `Check: If you see NO logs from the server above, the request was blocked (e.g. 403 Forbidden) before reaching the code.`
+        ]);
     } finally {
         setLoading(false);
     }
@@ -35,6 +55,23 @@ export default function CreateProjectPage() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Add New Project</h1>
+      
+      {/* Logs Display Section */}
+      <div className="mb-6 p-4 bg-gray-900 text-green-400 font-mono text-xs rounded-md shadow-inner overflow-hidden">
+        <h3 className="text-gray-500 font-bold mb-2 uppercase tracking-wide border-b border-gray-700 pb-1">Execution Logs</h3>
+        <div className="h-48 overflow-y-auto whitespace-pre-wrap flex flex-col-reverse">
+            {executionLogs.length === 0 ? (
+                <span className="text-gray-600 italic">Waiting to start...</span>
+            ) : (
+                executionLogs.map((log, index) => (
+                    <div key={index} className="border-b border-gray-800 py-1 last:border-0">
+                        {log}
+                    </div>
+                ))
+            )}
+        </div>
+      </div>
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
           <strong className="font-bold">Error: </strong>
