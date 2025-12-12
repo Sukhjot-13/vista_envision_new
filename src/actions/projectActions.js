@@ -1,5 +1,11 @@
 'use server';
 
+export async function pingProject() {
+    console.log('ENTRY: pingProject called');
+    return { success: true, message: 'Pong! Server Action connection is working.', timestamp: new Date().toISOString() };
+}
+
+
 import dbConnect from '@/lib/db';
 import Project from '@/models/Project';
 import cloudinary from '@/lib/cloudinary';
@@ -104,28 +110,36 @@ export async function createProject(formData) {
     const category = formData.get('category');
     const isFeatured = formData.get('isFeatured') === 'on';
     
-    addLog(`Step 2: Form data parsed. Title: "${title}", Category: "${category}"`);
-
+    // Check for pre-uploaded URL (Client-side upload)
+    let imageUrl = formData.get('imageUrl') || '';
     const coverImageFile = formData.get('image');
-    const additionalImages = formData.getAll('images');
-
-    let imageUrl = '';
-    if (coverImageFile && coverImageFile.size > 0) {
-        addLog('Step 3: Cover image found. Uploading to Cloudinary...');
+    
+    if (!imageUrl && coverImageFile && coverImageFile.size > 0) {
+        addLog('Step 3: Cover image found (File). Uploading to Cloudinary (Server-side)...');
         try {
             imageUrl = await uploadImage(coverImageFile);
             addLog(`Step 3: Cover image uploaded. URL: ${imageUrl}`);
         } catch (uploadError) {
             addLog(`Step 3 ERROR: Failed to upload cover image: ${uploadError.message}`);
-            throw uploadError; // Re-throw to be caught by main catch
+            throw uploadError;
         }
+    } else if (imageUrl) {
+        addLog(`Step 3: Using pre-uploaded cover image URL: ${imageUrl}`);
     } else {
-        addLog('Step 3: No cover image provided or empty file.');
+        addLog('Step 3: No cover image provided.');
     }
 
-    const images = [];
-    if (additionalImages && additionalImages.length > 0) {
-        addLog(`Step 4: Found ${additionalImages.length} additional images. Processing...`);
+    // Handle Gallery Images
+    const images = formData.getAll('galleryImages') || [];
+    const additionalImages = formData.getAll('images');
+
+    if (images.length > 0) {
+        addLog(`Step 4: Using ${images.length} pre-uploaded gallery image URLs.`);
+    }
+
+    // Legacy/Fallback Server-side upload for gallery
+    if (additionalImages && additionalImages.length > 0 && additionalImages[0].size > 0) {
+        addLog(`Step 4: Found ${additionalImages.length} additional images (Files). Processing...`);
         for (let i = 0; i < additionalImages.length; i++) {
             const file = additionalImages[i];
             if (file.size > 0) {
@@ -135,9 +149,6 @@ export async function createProject(formData) {
                 addLog(`Step 4: Image ${i + 1} uploaded.`);
             }
         }
-        addLog(`Step 4: All additional images uploaded. Total: ${images.length}`);
-    } else {
-        addLog('Step 4: No additional images to upload.');
     }
 
     addLog('Step 5: Creating Project Mongoose document...');

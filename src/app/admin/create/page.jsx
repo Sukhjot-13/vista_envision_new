@@ -1,6 +1,7 @@
 'use client';
 
 import { createProject } from '@/actions/projectActions';
+import { getSignature } from '@/actions/cloudinaryActions';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -14,42 +15,75 @@ export default function CreateProjectPage() {
     event.preventDefault();
     setLoading(true);
     setError('');
-    setExecutionLogs(['Client: Initiating form submission...', 'Client: Probing network headers...']);
+    const newLogs = ['Client: Initiating form submission...'];
+    setExecutionLogs(newLogs);
     
-    // Header Probe
-    try {
-        const probeRes = await fetch('/api/debug-headers', { method: 'POST' });
-        if (probeRes.ok) {
-            const probeData = await probeRes.json();
-            const diag = probeData.diagnostics;
-            setExecutionLogs(prev => [
-                ...prev, 
-                `Network Probe Success!`,
-                `Server sees Host: ${diag.host}`,
-                `Server sees Origin: ${diag.origin}`,
-                `Server sees X-Forwarded-Host: ${diag['x-forwarded-host']}`,
-                `Client: Calling createProject Server Action...`
-            ]);
-        } else {
-             setExecutionLogs(prev => [...prev, `Network Probe Failed: ${probeRes.status} ${probeRes.statusText}`]);
-        }
-    } catch (probeError) {
-        setExecutionLogs(prev => [...prev, `Network Probe Error: ${probeError.message}`]);
+    const updateLogs = (msg) => {
+        setExecutionLogs(prev => [...prev, msg]);
     }
-    
-    const formData = new FormData(event.target);
-    
+
     try {
+        const formData = new FormData(event.target);
+        const coverImageFile = formData.get('image');
+        const additionalImages = formData.getAll('images');
+        
+        // 1. Get Signature
+        updateLogs('Client: Requesting Cloudinary Signature...');
+        const { timestamp, signature, cloudName, apiKey } = await getSignature();
+        updateLogs('Client: Signature received.');
+
+        const uploadToCloudinary = async (file) => {
+            const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+            const data = new FormData();
+            data.append('file', file);
+            data.append('timestamp', timestamp);
+            data.append('signature', signature);
+            data.append('api_key', apiKey);
+            data.append('folder', 'vista_envision_projects');
+
+            const res = await fetch(url, { method: 'POST', body: data });
+            if (!res.ok) throw new Error(`Cloudinary upload failed: ${res.statusText}`);
+            const json = await res.json();
+            return json.secure_url;
+        };
+
+        // 2. Upload Cover Image
+        if (coverImageFile && coverImageFile.size > 0) {
+             updateLogs(`Client: Uploading cover image (${(coverImageFile.size / 1024 / 1024).toFixed(2)} MB) directly to Cloudinary...`);
+             const coverUrl = await uploadToCloudinary(coverImageFile);
+             updateLogs(`Client: Cover image uploaded: ${coverUrl}`);
+             formData.set('imageUrl', coverUrl); // Replace file with URL
+             formData.delete('image'); // Remove raw file to avoid payload limit
+        }
+
+        // 3. Upload Gallery Images
+        const galleryUrls = [];
+        if (additionalImages && additionalImages.length > 0 && additionalImages[0].size > 0) {
+            updateLogs(`Client: Uploading ${additionalImages.length} gallery images...`);
+            for (let i = 0; i < additionalImages.length; i++) {
+                const file = additionalImages[i];
+                if (file.size > 0) {
+                     const url = await uploadToCloudinary(file);
+                     galleryUrls.push(url);
+                     updateLogs(`Client: Gallery image ${i+1} uploaded.`);
+                }
+            }
+        }
+        
+        // Remove raw files and add URLs
+        formData.delete('images');
+        galleryUrls.forEach(url => formData.append('galleryImages', url));
+
+        updateLogs('Client: All files uploaded. Calling createProject Server Action with URLs...');
+
         const result = await createProject(formData);
         
-        // Append server logs to client logs
         if (result.logs && Array.isArray(result.logs)) {
              setExecutionLogs(prev => [...prev, ...result.logs]);
         }
 
         if (result.success) {
-            setExecutionLogs(prev => [...prev, 'Client: Project created successfully! Redirecting...']);
-            // Small delay to let user see success logs
+            updateLogs('Client: Project created successfully! Redirecting...');
             setTimeout(() => {
                 router.push('/admin');
             }, 1000);
@@ -59,15 +93,9 @@ export default function CreateProjectPage() {
 
     } catch (error) {
         console.error('Failed to create project - Client Catch:', error);
-        
         const errorMessage = error.message || 'Failed to create project';
-        setError(`${errorMessage} - Check Logs below`);
-        
-        setExecutionLogs(prev => [
-            ...prev, 
-            `Client Catch Error: ${errorMessage}`,
-            `Check: If you see NO logs from the server above, the request was blocked (e.g. 403 Forbidden) before reaching the code.`
-        ]);
+        setError(`${errorMessage} - Check Logs`);
+        updateLogs(`Client Catch Error: ${errorMessage}`);
     } finally {
         setLoading(false);
     }
