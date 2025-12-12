@@ -14,7 +14,28 @@ export default function CreateProjectPage() {
     event.preventDefault();
     setLoading(true);
     setError('');
-    setExecutionLogs(['Client: Initiating form submission...', 'Client: Calling createProject Server Action...']);
+    setExecutionLogs(['Client: Initiating form submission...', 'Client: Probing network headers...']);
+    
+    // Header Probe
+    try {
+        const probeRes = await fetch('/api/debug-headers', { method: 'POST' });
+        if (probeRes.ok) {
+            const probeData = await probeRes.json();
+            const diag = probeData.diagnostics;
+            setExecutionLogs(prev => [
+                ...prev, 
+                `Network Probe Success!`,
+                `Server sees Host: ${diag.host}`,
+                `Server sees Origin: ${diag.origin}`,
+                `Server sees X-Forwarded-Host: ${diag['x-forwarded-host']}`,
+                `Client: Calling createProject Server Action...`
+            ]);
+        } else {
+             setExecutionLogs(prev => [...prev, `Network Probe Failed: ${probeRes.status} ${probeRes.statusText}`]);
+        }
+    } catch (probeError) {
+        setExecutionLogs(prev => [...prev, `Network Probe Error: ${probeError.message}`]);
+    }
     
     const formData = new FormData(event.target);
     
